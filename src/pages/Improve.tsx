@@ -9,6 +9,43 @@ export default function Improve() {
   const navigate = useNavigate();
   const { analysisResult, improveStatus, improveResume, analysisStatus } = useResumeContext();
 
+  const generatePDF = () => {
+    if (!analysisResult) return;
+    import('jspdf').then(({ jsPDF }) => {
+      const doc = new jsPDF();
+      let y = 20;
+      doc.setFontSize(22);
+      doc.text('Improved Resume Sections', 20, y);
+      y += 15;
+      
+      if (analysisResult.diffSections) {
+        analysisResult.diffSections.forEach((section) => {
+          doc.setFontSize(14);
+          doc.setFont('helvetica', 'bold');
+          
+          if (y > 270) { doc.addPage(); y = 20; }
+          
+          doc.text(section.title, 20, y);
+          y += 8;
+          
+          doc.setFontSize(11);
+          doc.setFont('helvetica', 'normal');
+          const lines = doc.splitTextToSize(section.improved, 170);
+          
+          if (y + (lines.length * 6) > 280) {
+            doc.addPage();
+            y = 20;
+          }
+          
+          doc.text(lines, 20, y);
+          y += (lines.length * 6) + 10;
+        });
+      }
+      
+      doc.save('Optimized-Resume.pdf');
+    });
+  };
+
   // If no analysis, show prompt
   if (analysisStatus === 'idle' || !analysisResult) {
     return (
@@ -144,7 +181,7 @@ export default function Improve() {
           <div className="flex items-center gap-3">
             <Button
               variant="success"
-              onClick={() => alert('In production, this would download your improved resume as a PDF.')}
+              onClick={generatePDF}
             >
               <svg className="mr-2 w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -244,7 +281,7 @@ export default function Improve() {
               <Button
                 variant="success"
                 size="sm"
-                onClick={() => alert('In production, this would download your improved resume as a PDF.')}
+                onClick={generatePDF}
               >
                 <svg className="mr-2 w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
